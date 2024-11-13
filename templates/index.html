@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDS Live Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .container {
+            margin-top: 30px;
+        }
+        .log-container {
+            max-height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 30px;
+        }
+        .alert-box {
+            margin-top: 20px;
+        }
+        .alert {
+            margin-bottom: 10px;
+        }
+        #log-table {
+            width: 100%;
+            margin-top: 30px;
+        }
+        .chart-container {
+            max-width: 80%;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-center">IDS Live Analysis Dashboard</h1>
+
+    <!-- Real-time Logs Section -->
+    <div class="log-container">
+        <h5>Real-time Logs</h5>
+        <ul id="logs-list" class="list-group">
+            <!-- Live logs will be injected here -->
+        </ul>
+    </div>
+
+    <!-- Attack Summary Report -->
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Attack Summary</h5>
+            <table class="table table-bordered" id="report-table">
+                <thead>
+                    <tr>
+                        <th>Type of Attack</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Brute Force Attacks</td><td id="brute-force-count">0</td></tr>
+                    <tr><td>Port Scans</td><td id="port-scan-count">0</td></tr>
+                    <tr><td>Suspicious IP Accesses</td><td id="suspicious-ip-count">0</td></tr>
+                    <tr><td>Phishing Attempts</td><td id="phishing-count">0</td></tr>
+                    <tr><td>Anomalous Patterns</td><td id="anomaly-count">0</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h5>Attack Trends</h5>
+            <div class="chart-container">
+                <canvas id="attack-trend-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="alert-box">
+        <h5>Alerts</h5>
+        <div id="alert-list"></div>
+    </div>
+
+</div>
+
+<script>
+    // Update the logs live
+    function updateLogs() {
+        fetch('/get_logs')
+            .then(response => response.json())
+            .then(logs => {
+                const logsList = document.getElementById('logs-list');
+                logsList.innerHTML = '';
+                logs.forEach(log => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item');
+                    li.textContent = log;
+                    logsList.appendChild(li);
+                });
+            });
+    }
+
+    // Update the report statistics
+    function updateReport() {
+        fetch('/generate_report')
+            .then(response => response.json())
+            .then(report => {
+                document.getElementById('brute-force-count').textContent = report['Brute Force Attacks'];
+                document.getElementById('port-scan-count').textContent = report['Port Scans'];
+                document.getElementById('suspicious-ip-count').textContent = report['Suspicious IP Accesses'];
+                document.getElementById('phishing-count').textContent = report['Phishing Attempts'];
+                document.getElementById('anomaly-count').textContent = report['Anomalous Patterns'];
+            });
+    }
+
+    // Display alerts dynamically
+    function displayAlerts() {
+        fetch('/get_alerts')  // Changed to fetch from /get_alerts
+            .then(response => response.json())
+            .then(alerts => {
+                const alertList = document.getElementById('alert-list');
+                alertList.innerHTML = '';  // Clear existing alerts
+                alerts.forEach(alert => {
+                    const div = document.createElement('div');
+                    div.classList.add('alert', 'alert-warning');
+                    div.textContent = alert;
+                    alertList.appendChild(div);
+                });
+            });
+    }
+
+    // Set up Chart.js to display attack trends
+    function setupAttackTrendChart() {
+        const ctx = document.getElementById('attack-trend-chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Detected Attacks',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        function updateChart() {
+            fetch('/generate_report')
+                .then(response => response.json())
+                .then(report => {
+                    const timeLabel = new Date().toLocaleTimeString();
+                    chart.data.labels.push(timeLabel);
+                    chart.data.datasets[0].data.push(report['Brute Force Attacks']);
+                    chart.update();
+                });
+        }
+
+        setInterval(updateChart, 5000); // Update every 5 seconds
+    }
+
+    // Initialize the page with live updates
+    function init() {
+        updateLogs();
+        updateReport();
+        setupAttackTrendChart();
+        setInterval(updateLogs, 5000); // Refresh logs every 5 seconds
+        setInterval(updateReport, 10000); // Refresh report every 10 seconds
+        setInterval(displayAlerts, 5000); // Refresh alerts every 5 seconds
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
