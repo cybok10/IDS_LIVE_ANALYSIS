@@ -18,10 +18,20 @@ This project is an **Intrusion Detection System (IDS)** dashboard for live analy
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
+git clone https://github.com/cybok10/IDS_LIVE_ANALYSIS.git
+
 2. Install Dependencies
 
 Ensure you have Python 3 and pip installed. Then, install the required Python libraries.
 
 pip install -r requirements.txt
+
+python ids_analysis.py
+
+open browser ------- https://localhost/5050
+
+
+/get_logs: Should return the last few logs.
+/generate_report: Should return a summary of the attack statistics.
+/get_alerts: Should return the most recent alerts.
+
