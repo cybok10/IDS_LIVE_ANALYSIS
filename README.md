@@ -20,3 +20,8 @@ This project is an **Intrusion Detection System (IDS)** dashboard for live analy
 ```bash
 git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
 cd YOUR_REPOSITORY
+2. Install Dependencies
+
+Ensure you have Python 3 and pip installed. Then, install the required Python libraries.
+
+pip install -r requirements.txt
